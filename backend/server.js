@@ -20,7 +20,7 @@ const app = express();
 
 // Middleware - CORS configuration
 app.use(cors({
-  origin: process.env.CLIENT_URL || "https://rrss-company-com.onrender.com",
+  origin: process.env.CLIENT_URL || 10000,
   credentials: true
 }));
 
