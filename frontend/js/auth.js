@@ -1,29 +1,13 @@
 const API_BASE = '/api';
 
-// Helper function for authenticated requests
-async function authRequest(url, options = {}) {
-  const token = localStorage.getItem('token');
-  if (token) {
-    options.headers = {...options.headers, 'Authorization': `Bearer ${token}`};
-  }
-  
-  const response = await fetch(url, options);
-  if (response.status === 401) {
-    localStorage.removeItem('token');
-    window.location.href = '/login';
-    return null;
-  }
-  return response;
-}
-
-// Check authentication
+// Check if user is logged in
 function checkAuth() {
   const token = localStorage.getItem('token');
-  const path = window.location.pathname;
-  
-  if (token && (path.includes('login.html') || path.includes('register.html'))) {
+  if (token && (window.location.pathname.includes('login.html') || 
+      window.location.pathname.includes('register.html'))) {
     window.location.href = '/home';
-  } else if (!token && !path.includes('login.html') && !path.includes('register.html')) {
+  } else if (!token && !window.location.pathname.includes('login.html') && 
+             !window.location.pathname.includes('register.html')) {
     window.location.href = '/login';
   }
 }
@@ -31,58 +15,108 @@ function checkAuth() {
 // Register function
 async function register(e) {
   e.preventDefault();
-  const formData = new FormData(e.target);
-  const data = Object.fromEntries(formData);
+  
+  const name = document.getElementById('name').value;
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
   
   try {
-    const response = await authRequest(`${API_BASE}/auth/register`, {
+    const response = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(data)
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name, email, password })
     });
     
+    const data = await response.json();
+    
     if (response.ok) {
-      const {token} = await response.json();
-      localStorage.setItem('token', token);
+      localStorage.setItem('token', data.token);
       window.location.href = '/home';
     } else {
-      const {message} = await response.json();
-      alert(message || 'Registration failed');
+      showAlert(data.message || data.error, 'error');
     }
   } catch (error) {
-    alert('An error occurred. Please try again.');
+    showAlert('An error occurred. Please try again.', 'error');
   }
 }
 
 // Login function
 async function login(e) {
   e.preventDefault();
-  const formData = new FormData(e.target);
-  const data = Object.fromEntries(formData);
+  
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
   
   try {
-    const response = await authRequest(`${API_BASE}/auth/login`, {
+    const response = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(data)
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
     });
     
+    const data = await response.json();
+    
     if (response.ok) {
-      const {token} = await response.json();
-      localStorage.setItem('token', token);
+      localStorage.setItem('token', data.token);
       window.location.href = '/home';
     } else {
-      const {message} = await response.json();
-      alert(message || 'Login failed');
+      showAlert(data.message || data.error, 'error');
     }
   } catch (error) {
-    alert('An error occurred. Please try again.');
+    showAlert('An error occurred. Please try again.', 'error');
   }
 }
 
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-  checkAuth();
-  document.getElementById('register-form')?.addEventListener('submit', register);
-  document.getElementById('login-form')?.addEventListener('submit', login);
-});
+// Logout function
+function logout() {
+  localStorage.removeItem('token');
+  window.location.href = '/login';
+}
+
+// Show alert message
+function showAlert(message, type) {
+  // Remove any existing alerts
+  const existingAlerts = document.querySelectorAll('.alert');
+  existingAlerts.forEach(alert => alert.remove());
+  
+  const alertDiv = document.createElement('div');
+  alertDiv.className = `alert alert-${type}`;
+  alertDiv.appendChild(document.createTextNode(message));
+  
+  // Try different container selectors based on page
+  let container = document.querySelector('.auth-container') || 
+                  document.querySelector('.form-container') ||
+                  document.querySelector('.container') ||
+                  document.querySelector('body');
+  
+  if (container) {
+    const form = document.querySelector('form');
+    if (form) {
+      container.insertBefore(alertDiv, form);
+    } else {
+      container.insertBefore(alertDiv, container.firstChild);
+    }
+  }
+  
+  setTimeout(() => {
+    if (alertDiv.parentNode) {
+      alertDiv.parentNode.removeChild(alertDiv);
+    }
+  }, 5000);
+}
+
+// Initialize auth pages
+if (document.getElementById('register-form')) {
+  document.getElementById('register-form').addEventListener('submit', register);
+}
+
+if (document.getElementById('login-form')) {
+  document.getElementById('login-form').addEventListener('submit', login);
+}
+
+// Check authentication on page load
+document.addEventListener('DOMContentLoaded', checkAuth);

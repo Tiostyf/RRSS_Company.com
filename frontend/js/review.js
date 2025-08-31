@@ -1,52 +1,68 @@
 const API_BASE = '/api';
 
-// Helper function for authenticated requests
-async function authRequest(url, options = {}) {
-  const token = localStorage.getItem('token');
-  if (token) {
-    options.headers = {...options.headers, 'Authorization': `Bearer ${token}`};
-  }
-  
-  const response = await fetch(url, options);
-  if (response.status === 401) {
-    localStorage.removeItem('token');
-    window.location.href = '/login';
-    return null;
-  }
-  return response;
-}
-
 // Check authentication
 function checkAuth() {
-  if (!localStorage.getItem('token')) {
+  const token = localStorage.getItem('token');
+  if (!token) {
     window.location.href = '/login';
+    return;
   }
 }
 
 // Handle form submission
 async function handleSubmit(e) {
   e.preventDefault();
-  const formData = new FormData(e.target);
+  
+  const formData = new FormData();
+  formData.append('image', document.getElementById('image').files[0]);
+  formData.append('description', document.getElementById('description').value);
+  formData.append('review', document.getElementById('review').value);
+  formData.append('appointmentDate', document.getElementById('appointment-date').value);
+  formData.append('department', document.getElementById('department').value);
+  formData.append('doctorName', document.getElementById('doctor-name').value);
   
   try {
-    const response = await authRequest(`${API_BASE}/posts`, {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE}/posts`, {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
       body: formData
     });
     
-    if (response?.ok) {
-      alert('Appointment booked successfully!');
-      e.target.reset();
+    const data = await response.json();
+    
+    if (response.ok) {
+      showAlert('Appointment booked successfully!', 'success');
+      document.getElementById('review-form').reset();
     } else {
-      alert('Failed to book appointment');
+      showAlert(data.message, 'error');
     }
   } catch (error) {
-    alert('An error occurred. Please try again.');
+    showAlert('An error occurred. Please try again.', 'error');
   }
 }
 
-// Initialize
+// Show alert message
+function showAlert(message, type) {
+  const alertDiv = document.createElement('div');
+  alertDiv.className = `alert alert-${type}`;
+  alertDiv.appendChild(document.createTextNode(message));
+  
+  const formContainer = document.querySelector('.form-container');
+  const form = document.querySelector('form');
+  formContainer.insertBefore(alertDiv, form);
+  
+  setTimeout(() => alertDiv.remove(), 3000);
+}
+
+// Initialize review page
 document.addEventListener('DOMContentLoaded', () => {
   checkAuth();
-  document.getElementById('review-form')?.addEventListener('submit', handleSubmit);
+  
+  const reviewForm = document.getElementById('review-form');
+  if (reviewForm) {
+    reviewForm.addEventListener('submit', handleSubmit);
+  }
 });
