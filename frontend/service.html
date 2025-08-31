@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Services - AIIMS Medical Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/home" class="navbar-brand">AIIMS Medical Portal</a>
+    <ul class="navbar-nav">
+      <li><a href="/home" class="nav-link">Home</a></li>
+      <li><a href="/service" class="nav-link active">Services</a></li>
+      <li><a href="/review" class="nav-link">Appointments</a></li>
+      <li><a href="#" class="nav-link" id="logout-btn">Logout</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="page-header">
+      <h1>Our Hospitals & Services</h1>
+      <p>Discover our network of hospitals and specialized services</p>
+    </div>
+
+    <div class="card-grid" id="hospitals-grid">
+      <!-- Hospitals will be loaded here dynamically -->
+    </div>
+  </div>
+
+  <script src="js/service.js"></script>
+</body>
+</html>
