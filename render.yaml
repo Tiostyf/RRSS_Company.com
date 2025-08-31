@@ -1,26 +1,18 @@
 services:
   - type: web
-    name: rrss-company-com
+    name: aiims-portal
     env: node
     plan: free
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && npm start
+    buildCommand: npm install
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: MONGODB_URI
-        fromDatabase:
-          name: medical-portal-db
-          property: connectionString
+      - key: PORT
+        value: 10000
+      - key: MONGO_URL
+        fromSecret: MONGO_URL
       - key: JWT_SECRET
-        generateValue: true
+        fromSecret: JWT_SECRET
       - key: JWT_EXPIRE
         value: 7d
-      - key: CLIENT_URL
-        value: https://rrss-company-com.onrender.com
-
-databases:
-  - name: medical-portal-db
-    plan: free
-    databaseName: medical-portal
-    user: medical-portal-user

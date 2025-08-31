@@ -3,41 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Register - AIIMS Medical Portal</title>
-  <link rel="stylesheet" href="css/style.css">
+  <title>Register - AIIMS Portal</title>
   <link rel="stylesheet" href="css/auth.css">
 </head>
 <body>
   <div class="auth-container">
-    <div class="auth-header">
-      <h1>Create Account</h1>
-      <p>Join AIIMS Medical Portal to access our services</p>
-    </div>
-    
-    <form id="register-form">
-      <div class="form-group">
-        <label for="name">Full Name</label>
-        <input type="text" id="name" required>
+    <div class="auth-card">
+      <h2 class="auth-title">Create Account</h2>
+      <form class="auth-form" id="registerForm">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required minlength="6">
+        </div>
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" required>
+        </div>
+        <button type="submit" class="auth-btn">Register</button>
+      </form>
+      <div class="auth-link">
+        Already have an account? <a href="/login">Sign In</a>
       </div>
-      
-      <div class="form-group">
-        <label for="email">Email Address</label>
-        <input type="email" id="email" required>
-      </div>
-      
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" required minlength="6">
-      </div>
-      
-      <button type="submit" class="btn">Register</button>
-    </form>
-    
-    <div class="auth-footer">
-      <p>Already have an account? <a href="/login">Login here</a></p>
     </div>
   </div>
-
   <script src="js/auth.js"></script>
 </body>
 </html>

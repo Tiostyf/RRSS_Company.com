@@ -1,122 +1,106 @@
-const API_BASE = '/api';
-
-// Check if user is logged in
-function checkAuth() {
+// Check if user is already logged in
+document.addEventListener('DOMContentLoaded', function() {
   const token = localStorage.getItem('token');
-  if (token && (window.location.pathname.includes('login.html') || 
-      window.location.pathname.includes('register.html'))) {
+  if (token && (window.location.pathname.endsWith('login.html') || 
+                window.location.pathname.endsWith('register.html') ||
+                window.location.pathname === '/')) {
     window.location.href = '/home';
-  } else if (!token && !window.location.pathname.includes('login.html') && 
-             !window.location.pathname.includes('register.html')) {
-    window.location.href = '/login';
   }
-}
+});
 
-// Register function
-async function register(e) {
-  e.preventDefault();
-  
-  const name = document.getElementById('name').value;
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
-  
-  try {
-    const response = await fetch(`${API_BASE}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ name, email, password })
-    });
+// Handle registration form
+const registerForm = document.getElementById('registerForm');
+if (registerForm) {
+  registerForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
     
-    const data = await response.json();
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
     
-    if (response.ok) {
-      localStorage.setItem('token', data.token);
-      window.location.href = '/home';
-    } else {
-      showAlert(data.message || data.error, 'error');
+    // Validate form
+    if (password !== confirmPassword) {
+      showAlert('Passwords do not match', 'error');
+      return;
     }
-  } catch (error) {
-    showAlert('An error occurred. Please try again.', 'error');
-  }
-}
-
-// Login function
-async function login(e) {
-  e.preventDefault();
-  
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
-  
-  try {
-    const response = await fetch(`${API_BASE}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, password })
-    });
     
-    const data = await response.json();
-    
-    if (response.ok) {
-      localStorage.setItem('token', data.token);
-      window.location.href = '/home';
-    } else {
-      showAlert(data.message || data.error, 'error');
+    if (password.length < 6) {
+      showAlert('Password must be at least 6 characters', 'error');
+      return;
     }
-  } catch (error) {
-    showAlert('An error occurred. Please try again.', 'error');
-  }
+    
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, email, password })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Save token and redirect
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        window.location.href = '/home';
+      } else {
+        showAlert(data.message, 'error');
+      }
+    } catch (error) {
+      showAlert('An error occurred. Please try again.', 'error');
+    }
+  });
 }
 
-// Logout function
-function logout() {
-  localStorage.removeItem('token');
-  window.location.href = '/login';
+// Handle login form
+const loginForm = document.getElementById('loginForm');
+if (loginForm) {
+  loginForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Save token and redirect
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        window.location.href = '/home';
+      } else {
+        showAlert(data.message, 'error');
+      }
+    } catch (error) {
+      showAlert('An error occurred. Please try again.', 'error');
+    }
+  });
 }
 
 // Show alert message
 function showAlert(message, type) {
-  // Remove any existing alerts
-  const existingAlerts = document.querySelectorAll('.alert');
-  existingAlerts.forEach(alert => alert.remove());
-  
   const alertDiv = document.createElement('div');
   alertDiv.className = `alert alert-${type}`;
   alertDiv.appendChild(document.createTextNode(message));
   
-  // Try different container selectors based on page
-  let container = document.querySelector('.auth-container') || 
-                  document.querySelector('.form-container') ||
-                  document.querySelector('.container') ||
-                  document.querySelector('body');
+  // Insert after the form title or at the top of the form
+  const form = document.querySelector('.auth-form');
+  form.insertBefore(alertDiv, form.firstChild);
   
-  if (container) {
-    const form = document.querySelector('form');
-    if (form) {
-      container.insertBefore(alertDiv, form);
-    } else {
-      container.insertBefore(alertDiv, container.firstChild);
-    }
-  }
-  
+  // Remove alert after 3 seconds
   setTimeout(() => {
-    if (alertDiv.parentNode) {
-      alertDiv.parentNode.removeChild(alertDiv);
-    }
-  }, 5000);
+    alertDiv.remove();
+  }, 3000);
 }
-
-// Initialize auth pages
-if (document.getElementById('register-form')) {
-  document.getElementById('register-form').addEventListener('submit', register);
-}
-
-if (document.getElementById('login-form')) {
-  document.getElementById('login-form').addEventListener('submit', login);
-}
-
-// Check authentication on page load
-document.addEventListener('DOMContentLoaded', checkAuth);

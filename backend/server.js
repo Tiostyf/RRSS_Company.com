@@ -1,43 +1,37 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 const path = require('path');
-
-// Load environment variables based on environment
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
-}
-
 const authRoutes = require('./routes/auth');
-const {
-  generalLimiter,
-  authLimiter,
-  registerLimiter,
-  reviewLimiter
-} = require('./middleware/rateLimit');
+const postRoutes = require('./routes/posts');
+const authMiddleware = require('./middleware/auth');
+const { generalLimiter, authLimiter, registerLimiter, reviewLimiter } = require('./middleware/rateLimit');
 
 const app = express();
+const PORT = process.env.PORT || 10000;
 
-// Middleware - CORS configuration
-app.use(cors({
-  origin: process.env.CLIENT_URL || 10000,
-  credentials: true
-}));
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname, '../frontend')));
-
-// Apply rate limiting to all requests
+// Apply general rate limiting to all requests
 app.use(generalLimiter);
 
-// Apply specific rate limiting to auth routes
+// Middleware
+app.use(express.json({ limit: '10mb' })); // Increase limit for image uploads
+app.use(express.static(path.join(__dirname, '../frontend')));
+
+// MongoDB Connection
+mongoose.connect(process.env.MONGO_URL || 'mongodb://localhost:27017/aiims-portal', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('MongoDB connected successfully'))
+.catch(err => console.error('MongoDB connection error:', err));
+
+// Routes with specific rate limiting
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', registerLimiter);
-
-// Routes
+app.use('/api/posts', reviewLimiter);
 app.use('/api/auth', authRoutes);
+app.use('/api/posts', postRoutes);
 
-// Serve frontend pages
+// Serve HTML pages
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/login.html'));
 });
@@ -50,31 +44,31 @@ app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/login.html'));
 });
 
-// Protected routes
-app.get('/home', (req, res) => {
+// Protected routes - require authentication
+app.get('/home', authMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/home.html'));
 });
 
-app.get('/service', (req, res) => {
+app.get('/service', authMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/service.html'));
 });
 
-app.get('/review', (req, res) => {
+app.get('/review', authMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/review.html'));
 });
 
-// Health check endpoint for Render
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', message: 'Server is running' });
+// Error handling middleware for rate limiting
+app.use((err, req, res, next) => {
+  if (err.statusCode === 429) {
+    return res.status(429).json({
+      error: 'Too many requests, please try again later.'
+    });
+  }
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URL || process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.log('MongoDB connection error:', err));
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`));
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});

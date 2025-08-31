@@ -1,77 +1,76 @@
 .auth-container {
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 30px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a73e8 0%, #0288d1 100%);
+  padding: 1rem;
+}
+
+.auth-card {
   background: white;
-  border-radius: 10px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
 }
 
-.auth-header {
+.auth-title {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 1.5rem;
+  color: #1a73e8;
 }
 
-.auth-header h1 {
-  color: #2c3e50;
-  margin-bottom: 10px;
+.auth-form .form-group {
+  margin-bottom: 1.5rem;
 }
 
-.auth-header p {
-  color: #7f8c8d;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
+.auth-form label {
   display: block;
-  margin-bottom: 5px;
-  color: #2c3e50;
+  margin-bottom: 0.5rem;
   font-weight: 500;
 }
 
-.form-group input {
+.auth-form input {
   width: 100%;
-  padding: 12px;
+  padding: 0.75rem;
   border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 16px;
-  transition: border-color 0.3s;
+  border-radius: 4px;
+  font-size: 1rem;
 }
 
-.form-group input:focus {
+.auth-form input:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: #1a73e8;
 }
 
-.btn {
+.auth-btn {
   width: 100%;
-  padding: 12px;
-  background: #3498db;
+  padding: 0.75rem;
+  background-color: #1a73e8;
   color: white;
   border: none;
-  border-radius: 5px;
-  font-size: 16px;
+  border-radius: 4px;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: background-color 0.3s;
 }
 
-.btn:hover {
-  background: #2980b9;
+.auth-btn:hover {
+  background-color: #0d5bba;
 }
 
-.auth-footer {
+.auth-link {
   text-align: center;
-  margin-top: 20px;
+  margin-top: 1.5rem;
 }
 
-.auth-footer a {
-  color: #3498db;
+.auth-link a {
+  color: #1a73e8;
   text-decoration: none;
 }
 
-.auth-footer a:hover {
+.auth-link a:hover {
   text-decoration: underline;
 }

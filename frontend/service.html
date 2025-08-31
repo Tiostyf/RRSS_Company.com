@@ -3,30 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Services - AIIMS Medical Portal</title>
+  <title>Services - AIIMS Portal</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <nav class="navbar">
-    <a href="/home" class="navbar-brand">AIIMS Medical Portal</a>
-    <ul class="navbar-nav">
-      <li><a href="/home" class="nav-link">Home</a></li>
-      <li><a href="/service" class="nav-link active">Services</a></li>
-      <li><a href="/review" class="nav-link">Appointments</a></li>
-      <li><a href="#" class="nav-link" id="logout-btn">Logout</a></li>
-    </ul>
-  </nav>
-
-  <div class="container">
-    <div class="page-header">
-      <h1>Our Hospitals & Services</h1>
-      <p>Discover our network of hospitals and specialized services</p>
+  <header class="header">
+    <div class="container">
+      <nav class="nav">
+        <div class="logo">AIIMS Portal</div>
+        <ul class="nav-links">
+          <li><a href="/home">Home</a></li>
+          <li><a href="/service">Services</a></li>
+          <li><a href="/review">Appointments</a></li>
+          <li><span>Welcome, <span id="userName"></span></span></li>
+          <li><button class="btn btn-logout" onclick="logout()">Logout</button></li>
+        </ul>
+      </nav>
     </div>
+  </header>
 
-    <div class="card-grid" id="hospitals-grid">
-      <!-- Hospitals will be loaded here dynamically -->
+  <main class="main-content">
+    <div class="container">
+      <h1 class="page-title">AIIMS Hospitals & Services</h1>
+      <div class="grid" id="hospitalsGrid">
+        <!-- Hospitals will be loaded here dynamically -->
+      </div>
     </div>
-  </div>
+  </main>
 
   <script src="js/service.js"></script>
 </body>
