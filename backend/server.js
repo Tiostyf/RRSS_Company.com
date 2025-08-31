@@ -9,6 +9,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const authRoutes = require('./routes/auth');
+const authMiddleware = require('./middleware/auth');
 const {
   generalLimiter,
   authLimiter,
@@ -20,9 +21,11 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:5000"
+  origin: process.env.CLIENT_URL || "http://localhost:5000",
+  credentials: true
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Apply rate limiting to all requests
@@ -35,7 +38,7 @@ app.use('/api/auth/register', registerLimiter);
 // Routes
 app.use('/api/auth', authRoutes);
 
-// Serve frontend pages
+// Serve frontend pages with optional token validation
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/login.html'));
 });
@@ -48,17 +51,38 @@ app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/login.html'));
 });
 
-// Protected routes
-app.get('/home', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/home.html'));
+// Protected routes - check for token
+app.get('/home', (req, res, next) => {
+  // Check if token exists in query params
+  if (req.query.token) {
+    // Validate token but don't block access if invalid
+    authMiddleware(req, res, () => {
+      res.sendFile(path.join(__dirname, '../frontend/home.html'));
+    });
+  } else {
+    // No token, still serve the page - frontend will handle redirection
+    res.sendFile(path.join(__dirname, '../frontend/home.html'));
+  }
 });
 
-app.get('/service', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/service.html'));
+app.get('/service', (req, res, next) => {
+  if (req.query.token) {
+    authMiddleware(req, res, () => {
+      res.sendFile(path.join(__dirname, '../frontend/service.html'));
+    });
+  } else {
+    res.sendFile(path.join(__dirname, '../frontend/service.html'));
+  }
 });
 
-app.get('/review', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/review.html'));
+app.get('/review', (req, res, next) => {
+  if (req.query.token) {
+    authMiddleware(req, res, () => {
+      res.sendFile(path.join(__dirname, '../frontend/review.html'));
+    });
+  } else {
+    res.sendFile(path.join(__dirname, '../frontend/review.html'));
+  }
 });
 
 // Health check endpoint for Render
@@ -66,13 +90,30 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'Server is running' });
 });
 
+// API status endpoint
+app.get('/api/status', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    message: 'API is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URL || process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.log('MongoDB connection error:', err));
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGO_URL || process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log(`MongoDB connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    process.exit(1);
+  }
+};
+
+connectDB();
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`));

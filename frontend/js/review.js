@@ -1,69 +1,52 @@
-// Change from absolute URL to relative path
 const API_BASE = '/api';
+
+// Helper function for authenticated requests
+async function authRequest(url, options = {}) {
+  const token = localStorage.getItem('token');
+  if (token) {
+    options.headers = {...options.headers, 'Authorization': `Bearer ${token}`};
+  }
+  
+  const response = await fetch(url, options);
+  if (response.status === 401) {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+    return null;
+  }
+  return response;
+}
 
 // Check authentication
 function checkAuth() {
-  const token = localStorage.getItem('token');
-  if (!token) {
+  if (!localStorage.getItem('token')) {
     window.location.href = '/login';
-    return;
   }
 }
 
 // Handle form submission
 async function handleSubmit(e) {
   e.preventDefault();
-  
-  const formData = new FormData();
-  formData.append('image', document.getElementById('image').files[0]);
-  formData.append('description', document.getElementById('description').value);
-  formData.append('review', document.getElementById('review').value);
-  formData.append('appointmentDate', document.getElementById('appointment-date').value);
-  formData.append('department', document.getElementById('department').value);
-  formData.append('doctorName', document.getElementById('doctor-name').value);
+  const formData = new FormData(e.target);
   
   try {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${API_BASE}/posts`, {
+    const response = await authRequest(`${API_BASE}/posts`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
       body: formData
     });
     
-    const data = await response.json();
-    
-    if (response.ok) {
-      showAlert('Appointment booked successfully!', 'success');
-      document.getElementById('review-form').reset();
+    if (response?.ok) {
+      alert('Appointment booked successfully!');
+      e.target.reset();
     } else {
-      showAlert(data.message, 'error');
+      alert('Failed to book appointment');
     }
   } catch (error) {
-    showAlert('An error occurred. Please try again.', 'error');
+    alert('An error occurred. Please try again.');
   }
 }
 
-// Show alert message
-function showAlert(message, type) {
-  const alertDiv = document.createElement('div');
-  alertDiv.className = `alert alert-${type}`;
-  alertDiv.appendChild(document.createTextNode(message));
-  
-  const formContainer = document.querySelector('.form-container');
-  const form = document.querySelector('form');
-  formContainer.insertBefore(alertDiv, form);
-  
-  setTimeout(() => alertDiv.remove(), 3000);
-}
-
-// Initialize review page
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
   checkAuth();
-  
-  const reviewForm = document.getElementById('review-form');
-  if (reviewForm) {
-    reviewForm.addEventListener('submit', handleSubmit);
-  }
+  document.getElementById('review-form')?.addEventListener('submit', handleSubmit);
 });
