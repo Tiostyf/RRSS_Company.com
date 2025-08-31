@@ -17,7 +17,7 @@ services:
       - key: JWT_EXPIRE
         value: 7d
       - key: CLIENT_URL
-        value: https://medical-portal.onrender.com
+        value: https://rrss-company-com.onrender.com
 
 databases:
   - name: medical-portal-db
