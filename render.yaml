@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: medical-portal
+    name: rrss-company-com
     env: node
     plan: free
     buildCommand: cd backend && npm install
@@ -23,4 +23,4 @@ databases:
   - name: medical-portal-db
     plan: free
     databaseName: medical-portal
-    user: medical-portal-user 
+    user: medical-portal-user
